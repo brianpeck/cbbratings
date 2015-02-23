@@ -153,18 +153,18 @@ relpower <- function(x) {
 }
 
 # Makes ratings prettier
-extractcbbrankings <- function(ratings,results,teams=NULL) {
+extractcbbrankings <- function(ratings,games,teams=NULL) {
   if(is.null(teams)) {
-    teams = as.character(unique(results$Team))
+    teams = as.character(unique(games$Team))
   }
   l <- ratings[ratings$team %in% teams,]
   l$team <- as.character(l$team)
-  record <- unlist(lapply(l$team,computerecord,results=results))
-  games <- sapply(record,FUN=function(x) {sum(as.numeric(unlist(strsplit(x,"-"))))})
-  hr <- unlist(lapply(l$team,computerecord,results=results,location="Home"))
-  ar <- unlist(lapply(l$team,computerecord,results=results,location="Away"))
-  sos <- unlist(lapply(l$team,computesos,games=results,ratings=ratings))
-  df <- data.frame(Team=l$team,GP=games,Overall=record,Home=hr,Away=ar,Rating=l$diff,SOS=sos)
+  record <- unlist(lapply(l$team,computerecord,games=games))
+  gp <- sapply(record,FUN=function(x) {sum(as.numeric(unlist(strsplit(x,"-"))))})
+  hr <- unlist(lapply(l$team,computerecord,games=games,location="Home"))
+  ar <- unlist(lapply(l$team,computerecord,games=games,location="Away"))
+  sos <- unlist(lapply(l$team,computesos,games=games,ratings=ratings))
+  df <- data.frame(Team=l$team,GP=gp,Overall=record,Home=hr,Away=ar,Rating=l$diff,SOS=sos)
   df <- filter(df,GP>5)
   df <- df[with(df,order(-Rating)),]
   rownames(df) <- NULL
@@ -173,11 +173,11 @@ extractcbbrankings <- function(ratings,results,teams=NULL) {
 }
 
 # Record for printing
-computerecord <- function(team,ratings,location=NULL) {
+computerecord <- function(team,games,location=NULL) {
   if(!is.null(location)) {
-    a <- plyr::count(ratings[(ratings$Team==team) & (ratings$Team.Location==location),'win'])
+    a <- plyr::count(games[(games$Team==team) & (games$Team.Location==location),'win'])
   } else {
-    a <- plyr::count(ratings[ratings$Team==team,'win'])
+    a <- plyr::count(games[games$Team==team,'win'])
   }
   w <- a[which(a$x==1),]$freq
   l <- a[which(a$x==0),]$freq
